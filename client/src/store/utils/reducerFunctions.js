@@ -11,8 +11,7 @@ export const addMessageToStore = (state, payload) => {
     return [newConvo, ...state];
   }
 
-  const newState = [...state];
-  return newState.map((convo) => {
+  return state.map((convo) => {
     if (convo.id === message.conversationId) {
       const convoCopy = { ...convo };
       convoCopy.messages.push(message);
@@ -25,8 +24,7 @@ export const addMessageToStore = (state, payload) => {
 };
 
 export const addOnlineUserToStore = (state, id) => {
-  const newState = [...state];
-  return newState.map((convo) => {
+  return state.map((convo) => {
     if (convo.otherUser.id === id) {
       const convoCopy = { ...convo };
       convoCopy.otherUser.online = true;
@@ -38,8 +36,7 @@ export const addOnlineUserToStore = (state, id) => {
 };
 
 export const removeOfflineUserFromStore = (state, id) => {
-  const newState = [...state];
-  return newState.map((convo) => {
+  return state.map((convo) => {
     if (convo.otherUser.id === id) {
       const convoCopy = { ...convo };
       convoCopy.otherUser.online = false;
@@ -71,8 +68,7 @@ export const addSearchedUsersToStore = (state, users) => {
 };
 
 export const addNewConvoToStore = (state, recipientId, message) => {
-  const newState = [...state];
-  return newState.map((convo) => {
+  return state.map((convo) => {
     if (convo.otherUser.id === recipientId) {
       const convoCopy = { ...convo };
       convoCopy.id = message.conversationId;
