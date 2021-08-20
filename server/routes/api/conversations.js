@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const { User, Conversation, Message } = require("../../db/models");
+const db = require("../../db");
 const { Op } = require("sequelize");
 const onlineUsers = require("../../onlineUsers");
 
@@ -18,7 +19,7 @@ router.get("/", async (req, res, next) => {
           user2Id: userId,
         },
       },
-      attributes: ["id"],
+      attributes: ["id", "lastRead"],
       order: [[Message, "createdAt", "DESC"]],
       include: [
         { model: Message, order: ["createdAt", "DESC"] },
@@ -77,6 +78,25 @@ router.get("/", async (req, res, next) => {
     }
 
     res.json(conversations);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/:id", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    let convo = await Conversation.update(
+      { lastRead: db.literal("CURRENT_TIMESTAMP") },
+      {
+        where: { id: req.params.id },
+        returning: ["lastRead", "id"],
+      }
+    );
+
+    res.json(convo);
   } catch (error) {
     next(error);
   }
