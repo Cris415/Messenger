@@ -83,11 +83,14 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+// Update the conversation with the latest date given an id 
 router.patch("/:id", async (req, res, next) => {
   try {
     if (!req.user) {
       return res.sendStatus(401);
     }
+
+    // update and return the time and id for frontend to update a conversation
     let convo = await Conversation.update(
       { lastRead: db.literal("CURRENT_TIMESTAMP") },
       {
