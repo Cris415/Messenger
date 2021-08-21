@@ -83,7 +83,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// Update the conversation with the latest date given an id 
+// Update the conversation with the latest date given an id
 router.patch("/:id", async (req, res, next) => {
   try {
     if (!req.user) {
@@ -99,7 +99,10 @@ router.patch("/:id", async (req, res, next) => {
       }
     );
 
-    res.json(convo);
+    // The promise returns an array with one or two elements.
+    // The first element is always the number of affected rows,
+    // while the second element is the actual affected rows (sequelize.org)
+    res.json(convo[1][0]);
   } catch (error) {
     next(error);
   }
