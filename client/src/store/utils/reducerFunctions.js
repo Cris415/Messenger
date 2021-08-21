@@ -80,3 +80,15 @@ export const addNewConvoToStore = (state, recipientId, message) => {
     }
   });
 };
+
+export const addUpdatedLastReadToStore = (state, { lastRead, id }) => {
+  return state.map((convo) => {
+    if (convo.id === id) {
+      const convoCopy = { ...convo };
+      convoCopy.lastRead = lastRead;
+      return convoCopy;
+    } else {
+      return convo;
+    }
+  });
+};
