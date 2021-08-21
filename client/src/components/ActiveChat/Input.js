@@ -24,6 +24,9 @@ const Input = (props) => {
 
   const handleChange = (event) => {
     setText(event.target.value);
+    if (props.handleChange){
+      props.handleChange();
+    }
   };
 
   const handleSubmit = async (event) => {

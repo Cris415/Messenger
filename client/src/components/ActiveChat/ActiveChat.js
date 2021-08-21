@@ -3,6 +3,8 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
 import { connect } from "react-redux";
+import { updateLastRead } from "../../store/utils/thunkCreators";
+import debounce from "lodash.debounce";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -24,9 +26,15 @@ const ActiveChat = (props) => {
   const classes = useStyles();
   const { user } = props;
   const conversation = props.conversation || {};
+  const updateLastReadDebounced = props.updateLastRead(conversation.id);
+  const handleChange = (conversation) => {
+    if (conversation.id) {
+      updateLastReadDebounced();
+    }
+  };
 
   return (
-    <Box className={classes.root}>
+    <Box className={classes.root} onClick={() => handleChange(conversation)}>
       {conversation.otherUser && (
         <>
           <Header
@@ -43,6 +51,7 @@ const ActiveChat = (props) => {
               otherUser={conversation.otherUser}
               conversationId={conversation.id}
               user={user}
+              handleChange={() => handleChange(conversation)}
             />
           </Box>
         </>
@@ -57,9 +66,17 @@ const mapStateToProps = (state) => {
     conversation:
       state.conversations &&
       state.conversations.find(
-        (conversation) => conversation.otherUser.username === state.activeConversation
-      )
+        (conversation) =>
+          conversation.otherUser.username === state.activeConversation
+      ),
+  };
+};
+const mapDispatchToProps = (dispatch) => {
+  return {
+    updateLastRead: (id) => {
+      return debounce(() => dispatch(updateLastRead(id)), 500);
+    },
   };
 };
 
-export default connect(mapStateToProps, null)(ActiveChat);
+export default connect(mapStateToProps, mapDispatchToProps)(ActiveChat);
