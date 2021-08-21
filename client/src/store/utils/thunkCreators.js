@@ -5,6 +5,7 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  updatedLastRead
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
@@ -77,6 +78,15 @@ export const fetchConversations = () => async (dispatch) => {
     console.error(error);
   }
 };
+
+export const updateLastRead = (id) => async (dispatch) => {
+  try {
+    const { data } = await axios.patch(`/api/conversations/${id}`);
+    dispatch(updatedLastRead(data))
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 const saveMessage = async (body) => {
   const { data } = await axios.post("/api/messages", body);
