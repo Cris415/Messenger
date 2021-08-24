@@ -3,7 +3,6 @@ const { User, Conversation, Message, LastRead } = require("../../db/models");
 const db = require("../../db");
 const { Op } = require("sequelize");
 const onlineUsers = require("../../onlineUsers");
-const  countUnread  = require("./helperFunc");
 
 // get all conversations for a user, include latest message text for preview, and all messages
 // include other user model so we have info on username/profile pic (don't include current user info)
@@ -80,20 +79,11 @@ router.get("/", async (req, res, next) => {
       convoJSON.messages = convoJSON.messages.reverse();
 
       // find dates that belong to user
-      const lastReadData = convoJSON.lastreads.filter((lastRead) => {
+      convoJSON.lastreads = convoJSON.lastreads.filter((lastRead) => {
         if (lastRead.userId === userId) {
           return lastRead;
         }
       })[0];
-
-      // add count to user conversation
-      if (lastReadData) {
-        convoJSON.unreadMessageCount = countUnread(
-          convoJSON,
-          userId,
-          lastReadData.date
-        );
-      }
       conversations[i] = convoJSON;
     }
 
