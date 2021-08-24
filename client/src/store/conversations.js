@@ -16,7 +16,7 @@ const REMOVE_OFFLINE_USER = "REMOVE_OFFLINE_USER";
 const SET_SEARCHED_USERS = "SET_SEARCHED_USERS";
 const CLEAR_SEARCHED_USERS = "CLEAR_SEARCHED_USERS";
 const ADD_CONVERSATION = "ADD_CONVERSATION";
-const UPDATED_LASTREAD = "UPDATE_LASTREAD";
+const UPDATED_LASTREAD = "UPDATED_LASTREAD";
 
 // ACTION CREATORS
 
@@ -69,7 +69,7 @@ export const addConversation = (recipientId, newMessage) => {
   };
 };
 
-export const updatedLastRead = (data) => {
+export const addLastReadDateToStore = (data) => {
   return {
     type: UPDATED_LASTREAD,
     data,
