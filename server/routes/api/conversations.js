@@ -1,8 +1,9 @@
 const router = require("express").Router();
-const { User, Conversation, Message } = require("../../db/models");
+const { User, Conversation, Message, LastRead } = require("../../db/models");
 const db = require("../../db");
 const { Op } = require("sequelize");
 const onlineUsers = require("../../onlineUsers");
+const  countUnread  = require("./helperFunc");
 
 // get all conversations for a user, include latest message text for preview, and all messages
 // include other user model so we have info on username/profile pic (don't include current user info)
@@ -19,7 +20,7 @@ router.get("/", async (req, res, next) => {
           user2Id: userId,
         },
       },
-      attributes: ["id", "lastRead"],
+      attributes: ["id"],
       order: [[Message, "createdAt", "DESC"]],
       include: [
         { model: Message, order: ["createdAt", "DESC"] },
@@ -44,6 +45,10 @@ router.get("/", async (req, res, next) => {
           },
           attributes: ["id", "username", "photoUrl"],
           required: false,
+        },
+        {
+          model: LastRead,
+          attributes: ["date", "conversationId", "userId"],
         },
       ],
     });
@@ -74,6 +79,21 @@ router.get("/", async (req, res, next) => {
       // reversing to display new messages at bottom
       convoJSON.messages = convoJSON.messages.reverse();
 
+      // find dates that belong to user
+      const lastReadData = convoJSON.lastreads.filter((lastRead) => {
+        if (lastRead.userId === userId) {
+          return lastRead;
+        }
+      })[0];
+
+      // add count to user conversation
+      if (lastReadData) {
+        convoJSON.unreadMessageCount = countUnread(
+          convoJSON,
+          userId,
+          lastReadData.date
+        );
+      }
       conversations[i] = convoJSON;
     }
 
@@ -89,20 +109,35 @@ router.patch("/:id", async (req, res, next) => {
     if (!req.user) {
       return res.sendStatus(401);
     }
+    const convoId = req.params.id;
+    const userId = req.user.id;
 
-    // update and return the time and id for frontend to update a conversation
-    let convo = await Conversation.update(
-      { lastRead: db.literal("CURRENT_TIMESTAMP") },
-      {
-        where: { id: req.params.id },
-        returning: ["lastRead", "id"],
-      }
-    );
-
-    // The promise returns an array with one or two elements.
-    // The first element is always the number of affected rows,
-    // while the second element is the actual affected rows (sequelize.org)
-    res.json(convo[1][0]);
+    // find conversation last read time
+    let lastRead = await LastRead.findOne({
+      where: {
+        conversationId: convoId,
+        userId: userId,
+      },
+    });
+    // update it if found
+    // if not there create it
+    if (lastRead) {
+      LastRead.update(
+        { date: db.literal("CURRENT_TIMESTAMP") },
+        {
+          where: {
+            conversationId: convoId,
+            userId: userId,
+          },
+        }
+      );
+    } else {
+      LastRead.create({
+        conversationId: convoId,
+        userId: userId,
+      });
+    }
+    res.json(lastRead);
   } catch (error) {
     next(error);
   }
