@@ -109,25 +109,28 @@ router.patch("/:id", async (req, res, next) => {
         userId: userId,
       },
     });
-    // update it if found
-    // if not there create it
+
     if (lastRead) {
-      LastRead.update(
+      lastRead = await LastRead.update(
         { date: db.literal("CURRENT_TIMESTAMP") },
         {
           where: {
             conversationId: convoId,
             userId: userId,
           },
+          returning: true,
+          plain: true,
         }
       );
-    } else {
-      LastRead.create({
+      lastRead = lastRead[1];
+      res.json(lastRead)
+    }  else {
+      lastRead = await LastRead.create({
         conversationId: convoId,
         userId: userId,
       });
+      res.json(lastRead);
     }
-    res.json(lastRead);
   } catch (error) {
     next(error);
   }
