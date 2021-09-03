@@ -36,7 +36,9 @@ const Input = (props) => {
       sender: conversationId ? null : user,
     };
     await postMessage(reqBody);
-    await updateLastRead(conversationId);
+    if (conversationId){
+      await updateLastRead(conversationId);
+    }
     setText("");
   };
 

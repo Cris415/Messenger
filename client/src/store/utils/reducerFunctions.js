@@ -8,16 +8,29 @@ export const addMessageToStore = (state, payload) => {
       messages: [message],
     };
     newConvo.latestMessageText = message.text;
-    newConvo.lastreads = lastreads.filter((lr) => lr.userId !== sender.id)[0];
+
+    // Add lastread dates to conversation
+    newConvo.lastread = lastreads.filter(
+      (lr) => lr.userId !== sender.id
+    )[0].date;
+
+    newConvo.otherUser.lastread = lastreads.filter(
+      (lr) => lr.userId === sender.id
+    )[0].date;
     return [newConvo, ...state];
   }
   return state.map((convo) => {
     if (convo.id === message.conversationId) {
       const convoCopy = { ...convo };
       convoCopy.messages.push(message);
-      convoCopy.lastreads = lastreads.filter(
+
+      // Add lastread dates to conversation
+      convoCopy.lastread = lastreads.filter(
         (lr) => lr.userId !== convo.otherUser.id
-      )[0];
+      )[0].date;
+      convoCopy.otherUser.lastread = lastreads.filter(
+        (lr) => lr.userId === convo.otherUser.id
+      )[0].date;
       convoCopy.latestMessageText = message.text;
       return convoCopy;
     } else {
@@ -88,7 +101,7 @@ export const addUpdatedLastReadToStore = (state, { conversationId, date }) => {
   return state.map((convo) => {
     if (convo.id === conversationId) {
       const convoCopy = { ...convo };
-      convoCopy.lastreads.date = date;
+      convoCopy.lastread = date.date;
       return convoCopy;
     } else {
       return convo;

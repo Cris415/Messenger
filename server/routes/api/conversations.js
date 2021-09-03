@@ -78,12 +78,18 @@ router.get("/", async (req, res, next) => {
       // reversing to display new messages at bottom
       convoJSON.messages = convoJSON.messages.reverse();
 
-      // find dates that belong to user
-      convoJSON.lastreads = convoJSON.lastreads.filter((lastRead) => {
-        if (lastRead.userId === userId) {
-          return lastRead;
-        }
-      })[0];
+      // find dates that belong to each user
+      if (convoJSON.lastreads.length > 0) {
+        convoJSON.lastread = convoJSON.lastreads.filter(
+          (lr) => lr.userId === userId
+        )[0].date;
+
+        convoJSON.otherUser.lastread = convoJSON.lastreads.filter(
+          (lr) => lr.userId === convoJSON.otherUser.id
+        )[0].date;
+        delete convoJSON.lastreads;
+      }
+
       conversations[i] = convoJSON;
     }
 
@@ -101,6 +107,10 @@ router.patch("/:id", async (req, res, next) => {
     }
     const convoId = req.params.id;
     const userId = req.user.id;
+
+    if (!convoId) {
+      return res.sendStatus(404);
+    }
 
     // find conversation last read time
     let lastRead = await LastRead.findOne({
@@ -123,8 +133,8 @@ router.patch("/:id", async (req, res, next) => {
         }
       );
       lastRead = lastRead[1];
-      res.json(lastRead)
-    }  else {
+      res.json(lastRead);
+    } else {
       lastRead = await LastRead.create({
         conversationId: convoId,
         userId: userId,
