@@ -22,15 +22,14 @@ const useStyles = makeStyles(() => ({
 
 const ActiveChat = (props) => {
   const classes = useStyles();
-  const { user, lstMsgsRd } = props;
+  const { user, LastMessagesRead } = props;
   const conversation = props.conversation || {};
 
-  let lstMsgRdId;
-  if(lstMsgsRd && lstMsgsRd.length >0){
-    console.log(lstMsgsRd)
-    lstMsgRdId = lstMsgsRd.pop().id;
+  let lastMessageReadId;
+  if (LastMessagesRead && LastMessagesRead.length > 0) {
+    lastMessageReadId = LastMessagesRead.pop().id;
   } else {
-    lstMsgRdId = null;
+    lastMessageReadId = null;
   }
 
   return (
@@ -46,7 +45,7 @@ const ActiveChat = (props) => {
               messages={conversation.messages}
               otherUser={conversation.otherUser}
               userId={user.id}
-              lstMsgRdId={lstMsgRdId}
+              lastMessageReadId={lastMessageReadId}
             />
             <Input
               otherUser={conversation.otherUser}
@@ -70,16 +69,15 @@ const mapStateToProps = (state) => {
   return {
     user: state.user,
     conversation,
-    lstMsgsRd: 
+    LastMessagesRead:
       conversation &&
-      conversation.messages
-        .filter((msg) => {
-          const msgDate = new Date(msg.createdAt).getTime();
-          const lastReadDate = new Date(
-            conversation.otherUser.lastread
-          ).getTime();
-          return state.user.id === msg.senderId && lastReadDate > msgDate;
-        }),
+      conversation.messages.filter((message) => {
+        const messageDate = new Date(message.createdAt).getTime();
+        const lastReadDate = new Date(
+          conversation.otherUser.lastread
+        ).getTime();
+        return state.user.id === message.senderId && lastReadDate > messageDate;
+      }),
   };
 };
 
