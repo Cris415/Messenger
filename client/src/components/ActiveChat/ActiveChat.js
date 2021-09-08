@@ -8,7 +8,7 @@ const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
     flexGrow: 8,
-    flexDirection: "column"
+    flexDirection: "column",
   },
   chatContainer: {
     marginLeft: 41,
@@ -16,14 +16,21 @@ const useStyles = makeStyles(() => ({
     display: "flex",
     flexDirection: "column",
     flexGrow: 1,
-    justifyContent: "space-between"
-  }
+    justifyContent: "space-between",
+  },
 }));
 
 const ActiveChat = (props) => {
   const classes = useStyles();
-  const { user } = props;
+  const { user, lastMessageRead } = props;
   const conversation = props.conversation || {};
+
+  let lastMessageReadId;
+  if (lastMessageRead && lastMessageRead.length > 0) {
+    lastMessageReadId = lastMessageRead.pop().id;
+  } else {
+    lastMessageReadId = null;
+  }
 
   return (
     <Box className={classes.root}>
@@ -38,6 +45,7 @@ const ActiveChat = (props) => {
               messages={conversation.messages}
               otherUser={conversation.otherUser}
               userId={user.id}
+              lastMessageReadId={lastMessageReadId}
             />
             <Input
               otherUser={conversation.otherUser}
@@ -52,13 +60,24 @@ const ActiveChat = (props) => {
 };
 
 const mapStateToProps = (state) => {
+  let conversation =
+    state.conversations &&
+    state.conversations.find(
+      (conversation) =>
+        conversation.otherUser.username === state.activeConversation
+    );
   return {
     user: state.user,
-    conversation:
-      state.conversations &&
-      state.conversations.find(
-        (conversation) => conversation.otherUser.username === state.activeConversation
-      )
+    conversation,
+    lastMessageRead:
+      conversation &&
+      conversation.messages.filter((message) => {
+        const messageDate = new Date(message.createdAt).getTime();
+        const lastReadDate = new Date(
+          conversation.otherUser.lastread
+        ).getTime();
+        return state.user.id === message.senderId && lastReadDate > messageDate;
+      }),
   };
 };
 

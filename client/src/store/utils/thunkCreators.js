@@ -5,6 +5,7 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  addLastReadDateToStore,
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
@@ -78,6 +79,15 @@ export const fetchConversations = () => async (dispatch) => {
   }
 };
 
+export const updateLastRead = (id) => async (dispatch) => {
+  try {
+    const { data } = await axios.patch(`/api/conversations/${id}`);
+    dispatch(addLastReadDateToStore(data));
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const saveMessage = async (body) => {
   const { data } = await axios.post("/api/messages", body);
   return data;
@@ -88,6 +98,7 @@ const sendMessage = (data, body) => {
     message: data.message,
     recipientId: body.recipientId,
     sender: data.sender,
+    lastreads: data.lastreads,
   });
 };
 
@@ -98,9 +109,9 @@ export const postMessage = (body) => async (dispatch) => {
     const data = await saveMessage(body);
 
     if (!body.conversationId) {
-      dispatch(addConversation(body.recipientId, data.message));
+      dispatch(addConversation(body.recipientId, data.message, data.lastreads));
     } else {
-      dispatch(setNewMessage(data.message));
+      dispatch(setNewMessage(data.message, null, data.lastreads));
     }
 
     sendMessage(data, body);

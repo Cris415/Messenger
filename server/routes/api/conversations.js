@@ -1,5 +1,6 @@
 const router = require("express").Router();
-const { User, Conversation, Message } = require("../../db/models");
+const { User, Conversation, Message, LastRead } = require("../../db/models");
+const db = require("../../db");
 const { Op } = require("sequelize");
 const onlineUsers = require("../../onlineUsers");
 
@@ -44,6 +45,10 @@ router.get("/", async (req, res, next) => {
           attributes: ["id", "username", "photoUrl"],
           required: false,
         },
+        {
+          model: LastRead,
+          attributes: ["date", "conversationId", "userId"],
+        },
       ],
     });
 
@@ -73,10 +78,69 @@ router.get("/", async (req, res, next) => {
       // reversing to display new messages at bottom
       convoJSON.messages = convoJSON.messages.reverse();
 
+      // find dates that belong to each user
+      if (convoJSON.lastreads.length > 0) {
+        convoJSON.lastread = convoJSON.lastreads.filter(
+          (lr) => lr.userId === userId
+        )[0].date;
+
+        convoJSON.otherUser.lastread = convoJSON.lastreads.filter(
+          (lr) => lr.userId === convoJSON.otherUser.id
+        )[0].date;
+        delete convoJSON.lastreads;
+      }
+
       conversations[i] = convoJSON;
     }
 
     res.json(conversations);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update the conversation with the latest date given an id
+router.patch("/:id", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    const convoId = req.params.id;
+    const userId = req.user.id;
+
+    if (!convoId) {
+      return res.sendStatus(404);
+    }
+
+    // find conversation last read time
+    let lastRead = await LastRead.findOne({
+      where: {
+        conversationId: convoId,
+        userId: userId,
+      },
+    });
+
+    if (lastRead) {
+      lastRead = await LastRead.update(
+        { date: db.literal("CURRENT_TIMESTAMP") },
+        {
+          where: {
+            conversationId: convoId,
+            userId: userId,
+          },
+          returning: true,
+          plain: true,
+        }
+      );
+      lastRead = lastRead[1];
+      res.json(lastRead);
+    } else {
+      lastRead = await LastRead.create({
+        conversationId: convoId,
+        userId: userId,
+      });
+      res.json(lastRead);
+    }
   } catch (error) {
     next(error);
   }
