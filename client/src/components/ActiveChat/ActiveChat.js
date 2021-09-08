@@ -22,12 +22,12 @@ const useStyles = makeStyles(() => ({
 
 const ActiveChat = (props) => {
   const classes = useStyles();
-  const { user, LastMessagesRead } = props;
+  const { user, lastMessageRead } = props;
   const conversation = props.conversation || {};
 
   let lastMessageReadId;
-  if (LastMessagesRead && LastMessagesRead.length > 0) {
-    lastMessageReadId = LastMessagesRead.pop().id;
+  if (lastMessageRead && lastMessageRead.length > 0) {
+    lastMessageReadId = lastMessageRead.pop().id;
   } else {
     lastMessageReadId = null;
   }
@@ -69,7 +69,7 @@ const mapStateToProps = (state) => {
   return {
     user: state.user,
     conversation,
-    LastMessagesRead:
+    lastMessageRead:
       conversation &&
       conversation.messages.filter((message) => {
         const messageDate = new Date(message.createdAt).getTime();
