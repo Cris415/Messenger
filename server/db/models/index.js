@@ -2,12 +2,12 @@ const Conversation = require("./conversation");
 const User = require("./user");
 const Message = require("./message");
 const LastRead = require("./lastRead");
+const Group = require("./group");
 
 // associations
 
-User.hasMany(Conversation);
-Conversation.belongsTo(User, { as: "user1" });
-Conversation.belongsTo(User, { as: "user2" });
+Conversation.belongsToMany(User, { through: Group });
+User.belongsToMany(Conversation, { through: Group });
 Message.belongsTo(Conversation);
 LastRead.belongsTo(Conversation);
 Conversation.hasMany(Message);
@@ -18,4 +18,5 @@ module.exports = {
   Conversation,
   Message,
   LastRead,
+  Group
 };
